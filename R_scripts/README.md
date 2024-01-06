@@ -1,1 +1,1 @@
-R scripts used in this workshop
+R scripts used in the 'Speciation and adaptation genomics: a how-to guide' workshop
