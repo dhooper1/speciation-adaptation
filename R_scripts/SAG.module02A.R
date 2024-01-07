@@ -98,8 +98,8 @@ plot_grid(b, c, nrow = 1)
 ######################################
 
 # read in the data
-fst.younger <- read_table2("./vcftools/cichlid.younger_pair.weir.fst", col_names = TRUE)
-fst.older <- read_table2("./vcftools/cichlid.older_pair.weir.fst", col_names = TRUE)
+fst.younger <- read_table2("./vcftools/cichlid.python_pair.weir.fst", col_names = TRUE)
+fst.older <- read_table2("./vcftools/cichlid.makobe_pair.weir.fst", col_names = TRUE)
 
 #We need to clean up and merge our two datasets a little bit to ensure that they are comparable
 #We will first create a new Fst dataframe and add in results for our younger and older comparisons.
