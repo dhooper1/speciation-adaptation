@@ -1,0 +1,121 @@
+Introduction to the HPC
+January 2024
+
+#Log in to Huxley
+ssh [USER.ID]@huxley-master.pcc.amnh.org
+#Log in to Huxley for OSG utilities
+ssh [USER.ID]@huxley-osgsub-001.sdmz.amnh.org
+
+###install programs needed for base genomics analysis
+# use conda virtual environments - it is the simplest way to make sure you have no dependency issues
+# https://docs.conda.io/en/latest/miniconda.html
+
+# While there are a good number of programs installed for general use on our HPC cluster, it's better to maintain your own software.
+# This gives control over package versions so it allows for more reproducible results.
+# You can also maintain multiple environments for different applications and projects.
+# It is recommended that you create a distinct conda environment for each project or application that you use.
+# This way updating one set of libraries wonʼt break or affect the reproducibility of the results of other applications.
+# Use miniconda: it is a minimal distribution that includes the conda command, and just enough tooling to create new environments and populate them with the tools you select
+
+# As you will see, you create named environments with "conda"
+# There is always an environment named "base", which is special.
+# You should never install any packages or programs in base.
+# Use base only for creating new environments (with the conda create command, as youʼll see below), or to update your conda install, when youʼre advised to.
+# The python world moves fast, and incompatibilities mean that stuff breaks. By keeping base pristine, youʼll ensure that you wonʼt break it, which is tantamount to breaking your entire conda install.
+
+####Setup Steps
+# Download the latest miniconda distribution:
+cd /nas4/[USER.ID]/bin # use your bin directory here, if you don't have one yet, create it with mkdir bin
+
+# Inside bin
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+
+chmod +x ./Miniconda3-latest-Linux-x86_64.sh
+./Miniconda3-latest-Linux-x86_64.sh
+
+# When prompted for the installation location, enter the path to your home directory, and keep the name miniconda3 .
+# For example
+>>> /nas4/[USER.ID]/bin/miniconda3
+
+# When asked, allow the installer to initialize Miniconda3
+>>> yes
+
+# The path name that you specify when you install miniconda gets baked into the install.
+# Keep the miniconda3 installation to your "scratch" directory, and the symlink to it:
+
+cd #this brings you to home, which is different than scratch (check path by typing "pwd")
+ln -s /nas4/[USER.ID]/bin/miniconda3
+
+# We wanted to have a link to miniconda to your home directory because it is conventional to have it findable at $HOME/miniconda3 
+# Other aspects of our HPC installation (e.g. our Open OnDemand installation) will assume this
+
+###Initialization Opt out
+# Log out and back in again, and set conda to NOT activate by default, and then log out and back in again one more time.
+
+exit
+... #log in again
+conda config --set auto_activate_base false
+exit
+
+# You should only use conda when you need it, and should opt-in explicitly
+# Automatically adding things to your path on log-in can slow things down substantially.
+# It can also cause you to become dependent on things you didnʼt even know you were using.
+
+#Add a preferred channel
+conda config --add channels bioconda
+
+###Create a base 'speciation and adaptation genomics' or 'sag' environment & activate it
+
+conda create -n sag
+conda activate sag
+
+# Install programs of interest for this workshop your new conda environment
+
+conda install -n sag -c bioconda vcftools bcftools samtools plink gemma
+
+# Each time you log in you need to activate the specific environment (you can have several different ones)
+conda activate sag
+
+# To see the environments you have 
+
+conda env list
+
+# If at any time you want to remove a conda environment - and all its associated packages - you can do so using the command below.
+
+conda remove --name [example] --all
+
+# To run any program installed simply type the name of the program for example after activate sag
+
+samtools
+
+# To see what programs the cluster already has installed
+
+module avail
+
+# And then to load one to directly use from the list
+
+module load [exact name listed]
+
+# This is great for a quick use sometimes but, for example, the version of R I was using stopped being listed here so I had to reinstall all my R packages again
+# Which I found extremely annoying so now I also have a conda R enviroment
+
+### So, to create another virtual environment with R
+
+conda create -n R 
+conda install -n R -c conda-forge r-base
+conda install -n R -c conda-forge -c bioconda -c defaults r-stitch
+conda activate R
+
+# If you then run R after activating the R environment installed here all the packages you then install in R (install.packages) will be part of the environment
+
+# Copy and export/import a conda environment to a new system
+# Useful if working on different machines and wanting to avoid the tedium of installing all of these one at a time
+
+# To copy an existing env
+conda list -n busco --explicit > busco_conda.spec
+
+# To create a conda environment from the spec file
+conda create --name busco --file busco_conda.spec
+
+# Make your own busco env!
+conda create --name busco --file /nas4/[USER.ID]/sag/busco_conda.spec
