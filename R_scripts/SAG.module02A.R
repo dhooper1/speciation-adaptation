@@ -116,7 +116,11 @@ fst$FST.OLDER <- as.numeric(fst$FST.OLDER)
 summary(fst$FST.YOUNG)
 summary(fst$FST.OLDER)
 
-# plot the results
+#How many SNPs are located on each chromosome? Which chromosome has the most SNPs?
+fst |> count(CHROM)
+fst |> count(CHROM) |> arrange(desc(n))
+
+# plot the results as a distribution
 d <- fst |> ggplot(aes(x = FST.YOUNG)) + 
   geom_histogram(binwidth = 0.05, color="black", fill = "#bcbddc") +
   xlab("Fst between younger Python river populations")
@@ -140,8 +144,45 @@ fst |> ggplot(aes(x = FST.YOUNG, y = FST.OLDER)) +
   xlab("Fst between younger Python river populations") +
   ylab("Fst between older Makobe gulf populations")
 
-#Where are the shared highly-differentiated regions (i.e., HDRs) located?
-shared.HDRs <- fst |> filter(FST.YOUNG >= 0.5 & FST.OLDER > 0.5)
-#We can use count() to get a summary of how many shared HDRs are on each chromosome
-shared.HDRs |> count(CHROM)
+#There are many, many methods for performing outlier tests. Some use coalescent 
+#simulations, others use Bayesian inference to estimate the posterior probability 
+#that a SNP is an outlier and therefore putatively under selection.
 
+#However, the simplest way to detect outliers is to use the empirical distribution 
+#of Fst to look for SNPS that exceed an arbitrary threshold of differentiation. 
+#This method has been used quite a lot in the literature but it is not without 
+#caveats (and more on those later). Typically the threshold is set at either the 
+#95th or 99th percentile of the empirical data.
+
+#We can use the R function quantile to identify the 95th and 99th percentile of the Fst
+#distribution for each comparison - note that below we use 0.975 and 0.995 because
+#this is a one-tailed test (we're not interest in the lower tail of the Fst distribution.
+
+quantile(fst$FST.YOUNG, c(0.975, 0.995), na.rm = T)
+quantile(fst$FST.OLDER, c(0.975, 0.995), na.rm = T)
+
+#We can use the 95th percentile threshold to select a set of shared outlier sites.
+#Where are the shared highly-differentiated regions (i.e., HDRs) located?
+shared.HDRs <- fst |> filter(FST.YOUNG >= 0.5 & FST.OLDER > 0.6)
+
+#We can use count() to get a summary of how many shared HDRs are on each chromosome
+shared.HDRs |> count(CHROM) |> arrange(desc(n))
+
+##Let's next focus in on one chromosome of interest that contains some shared HDRs
+
+# plot the results for one chromosome of interest as a Manhattan plot
+fst |> filter(CHROM == "chr19") |> ggplot(aes(x = POS/1e6, y = FST.YOUNG)) +
+  geom_point() +
+  coord_cartesian(ylim = c(-0.2, 1.0)) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "#feb24c") +
+  labs(x = "Chromosome 19 [Mb]", y = "Fst") +
+  ggtitle("Python Pundamilia Pair [younger]")
+fst |> filter(CHROM == "chr19") |> ggplot(aes(x = POS/1e6, y = FST.OLDER)) +
+  geom_point() +
+  coord_cartesian(ylim = c(-0.2, 1.0)) +
+  geom_hline(yintercept = 0.6, linetype = "dashed", color = "#feb24c") +
+  labs(x = "Chromosome 19 [Mb]", y = "Fst") +
+  ggtitle("Makobe Pundamilia Pair [older]")
+
+#Would we expect that some of these shared HDR regions might be associated with genes 
+#releated to the phenotypic and ecological differences between pundamilia and nyererei?
