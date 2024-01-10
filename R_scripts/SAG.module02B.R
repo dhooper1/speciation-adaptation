@@ -69,7 +69,7 @@ hist(hindlabel$hi$h_posterior_mode, breaks = 50)
 #If you want to see all the results#
 
 View(hindlabel$hi)
-write.csv(hindlabel$hi, file = "gghybrid/all.repeatmask.filter.AIMs.wild.LD_prune.HI.csv")
+write.csv(hindlabel$hi, file = "gghybrid/all.repeatmask.filter.AIMs.wild.LD_prune.HI.csv", row.names = FALSE)
 
 #It is possible to get a result of NA or NaN for the posterior hybrid index estimate 
 #(h_posterior_mode). If this happens it probably means the variance of the proposal 
@@ -85,7 +85,35 @@ write.csv(hindlabel$hi, file = "gghybrid/all.repeatmask.filter.AIMs.wild.LD_prun
 #some individuals with poor convergence across runs. It's unlikely more than nitt=5000, 
 #burnin=2000 would be necessary, and even nitt=2000 is very likely to be sufficient.
 
+#################################################################
+####################GEOGRAPHIC CLINE OF HYBRID INDEX#############
+#################################################################
+
+##Read in a csv of results previously computed by gghybrid function esth
+hindlabel.complete <- read_delim("gghybrid/all.repeatmask.filter.AIMs.wild.LD_prune.HI.csv", delim = ",", col_names = c("SOURCE", "IID", "POPID", "H_POSTERIOR", "H_LOWER", "H_UPPER", "BETA_MEAN", "BETA_VAR", "SHAPE1", "SHAPE2"), skip = 1)
+###OR###
+##Create a new df of output from gghybrid function esth
+hindlabel.complete <- hindlabel$hi
+
+##Read in a csv containing sampling longitude and latitude for all examined samples
+source.info <- read_delim("gghybrid/all_chrom.repeatmask.filter.AIMs.wild.LD_prune.sample_sites.csv", delim = ",", col_names = c("IID", "LONGITUDE", "LATITUDE"), skip = 1)
+
+##Add latitude and longitude information to output from gghybrid function esth
+hindlabel.complete$LAT <- source.info$LATITUDE
+hindlabel.complete$LONG <- source.info$LONGITUDE
+
+theme_set(theme_bw())
+
+ggplot(hindlabel.complete, aes(x=LONG, y=H_POSTERIOR, color=H_POSTERIOR)) +
+  scale_color_gradient2(midpoint = 0.5, mid = "#2ca25f", high = "#b2182b", low = "#2166ac") +
+  theme(legend.position="none") + 
+  geom_point(size=2, alpha = 0.6) + 
+  coord_cartesian(xlim = c(122.5, 140), ylim = c(00, 1.0)) + 
+  labs(x = "LONGITUDE", y = "Hybrid Index")
+
+#Just how confident can we be in our inference of hybrid index?
 #Run esth twice more on the same data and carry out the Gelman-Rubin diagnostic test#
+#This test allows us to evaluate how confident we can be in our hybrid index scores
 
 hindlabel2=esth(data.prep.object=prepdata$data.prep,read.data.precols=dat$precols,include.Source=TRUE,nitt=1000,burnin=500)
 setkey(hindlabel2$hi,beta_mean)
