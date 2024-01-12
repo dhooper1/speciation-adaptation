@@ -5,6 +5,7 @@ devtools::install_github("ribailey/gghybrid")
 # load packages
 library(tidyverse)
 library(gghybrid) #https://github.com/ribailey/gghybrid
+library(coda)
 library(cowplot)
 
 ##Note: You'll need to set your own working directory accordingly
@@ -35,7 +36,8 @@ prepdata <- data.prep(data=dat$data,
                       return.genotype.table=T,
                       return.locus.table=T)
 
-prepdata
+#How many SNPs?
+prepdata$Nloci.postfilter
 
 #############################################################################
 #############################################################################
@@ -58,6 +60,11 @@ hindlabel=esth(
   nitt=1000,    #Testing suggests nitt=3000,burnin=1000 are sufficient for accurate posterior estimation#
   burnin=500
 )
+
+##Save the result as an RDS file so we don't need to do the above step every time:
+saveRDS(hindlabel, file = "gghybrid/all.repeatmask.filter.AIMs.wild.LD_prune.HI.rds")
+##Next time just read in the RDS file
+hindlabel <- readRDS("gghybrid/all.repeatmask.filter.AIMs.wild.LD_prune.HI.rds")
 
 #There will be a warning if any NAs are produced for the best posterior estimate 
 #(h_posterior_mode).
@@ -104,16 +111,20 @@ hindlabel.complete$LONG <- source.info$LONGITUDE
 
 theme_set(theme_bw())
 
-ggplot(hindlabel.complete, aes(x=LONG, y=H_POSTERIOR, color=H_POSTERIOR)) +
+ggplot(hindlabel.complete, aes(x=LONG, y=h_posterior_mode, color=h_posterior_mode)) +
   scale_color_gradient2(midpoint = 0.5, mid = "#2ca25f", high = "#b2182b", low = "#2166ac") +
   theme(legend.position="none") + 
   geom_point(size=2, alpha = 0.6) + 
   coord_cartesian(xlim = c(122.5, 140), ylim = c(00, 1.0)) + 
   labs(x = "LONGITUDE", y = "Hybrid Index")
 
+ggplot(hindlabel.complete, aes(x=LONG, y=LAT, color=h_posterior_mode)) +
+  geom_point()
+
 #Just how confident can we be in our inference of hybrid index?
-#Run esth twice more on the same data and carry out the Gelman-Rubin diagnostic test#
+#Run esth twice more on the same data and carry out the Gelman-Rubin diagnostic test
 #This test allows us to evaluate how confident we can be in our hybrid index scores
+#In practice, the G-R diagnostic evaluates convergence of independent MCMC runs to the same result
 
 hindlabel2=esth(data.prep.object=prepdata$data.prep,read.data.precols=dat$precols,include.Source=TRUE,nitt=1000,burnin=500)
 setkey(hindlabel2$hi,beta_mean)
@@ -130,6 +141,8 @@ hindall[,rn:=seq(1,.N)];
 #Take a sample of N=10000 from the posterior of each run for each individual, logit transform 
 #(the G-R diagnostic assumes normally distributed posteriors), and calculate the Gelman-Rubin 
 #diagnostic per individual. This diagnostic evaluates convergence in hi estimation across runs.
+
+library(coda)
 
 hindall[,h_gelman:=coda::gelman.diag(
   mcmc.list(
@@ -155,7 +168,7 @@ hindall[order(h_gelman)]
 #with the most extreme G-R value. Adjust sample number below based on N of sample-set#
 
 setkey(hindall,h_gelman);hindall
-hist(hindall[985,qlogis(rbeta(10000,beta_shape1,beta_shape2))])
+hist(hindall[983,qlogis(rbeta(10000,beta_shape1,beta_shape2))])
 
 plot(hindlabel$hi$h_posterior_mode,hindlabel2$hi$h_posterior_mode)
 
@@ -166,6 +179,10 @@ plot(hindlabel$hi$h_posterior_mode,hindlabel2$hi$h_posterior_mode)
 #############################################################################
 
 hi <- read.csv("gghybrid/all.repeatmask.filter.AIMs.wild.LD_prune.HI.csv", header = TRUE)
+##OR##
+hi <- hindlabel$hi
+##NOTE - SAMPLE IDs MUST BE ORDERED BY INDLABEL 
+hi <- hi[order(hi$INDLABEL), ]
 
 #sum(prepdata$geno.data[1,] == "1") / prepdata$Nloci.postfilter
 
@@ -180,7 +197,7 @@ for(i in 1:length(prepdata$geno.data$INDLABEL)) {
   df$HET[i] <- (sum(prepdata$geno.data[i,] == "1") / prepdata$Nloci.postfilter)
 }
 
-write.csv(df, file = "gghybrid/all.repeatmask.filter.AIMs.wild.LD_prune.HI_Ho.csv")
+write.csv(df, file = "gghybrid/all.repeatmask.filter.AIMs.wild.LD_prune.HI_Ho.csv", row.names = FALSE)
 df <- read.csv("gghybrid/all.repeatmask.filter.AIMs.wild.LD_prune.HI_Ho.csv", header = TRUE)
 
 #Quick triangle plot
@@ -195,7 +212,7 @@ a <- ggplot(df, aes(x=HI, y=HET, color=Source)) +
   geom_abline(intercept = 2, slope = -2, color="grey", size=0.5) + 
   geom_hline(yintercept=1.0) + geom_hline(yintercept=0.0) + 
   geom_vline(xintercept=0.0) + geom_vline(xintercept=1.0)
-a <- a + geom_point(size=3, alpha=0.4) + 
+a <- a + geom_point(size=3, alpha=0.2) + 
   labs(x = "Hybrid Index", y = "Heterozygosity") + 
   theme(legend.position="none") + 
   coord_cartesian(ylim = c(0.0, 1.0))
@@ -246,7 +263,7 @@ h3 <- ggplot(df2, aes(x=HET, color=Source, fill=Source)) +
 #The full set of arguments for ggcline including all defaults (comments indicate which entries 
 #are not defaults).
 
-gc=ggcline(
+tmp=ggcline(
   data.prep.object=prepdata$data.prep,    #Needs an entry#
   esth.object=hindlabel,                  #Needs an entry#
   esth.colname="h_posterior_mode",
@@ -261,8 +278,8 @@ gc=ggcline(
   fix.subject.centre = FALSE,
   fix.value.centre,
   plot.test.subject = c("chr8:3144828","chrZ:67498406"), #Remove plots to speed up runtime, they are just to check the MCMC is working#
-  plot.col = c("#19859C","#DD5129"),      #Remove plots to speed up runtime, they are just to check the MCMC is working#
-  plot.ylim = c(-3, 5),                   #Remove plots to speed up runtime, they are just to check the MCMC is working#
+  plot.col = c("#fdae61","#91bfdb"),      #Remove plots to speed up runtime, they are just to check the MCMC is working#
+  plot.ylim = c(-3, 6),                   #Remove plots to speed up runtime, they are just to check the MCMC is working#
   plot.pch.v.centre = c(1, 3),            #Remove plots to speed up runtime, they are just to check the MCMC is working#
   prior.logitcentre = c(0, sqrt(50)),     #Default#
   prior.logv = c(0, sqrt(10)),            #Default#
@@ -287,6 +304,11 @@ gc=ggcline(
 
 gc
 
+##Save the result as an RDS file so we don't need to do the above step every time:
+saveRDS(gc, file = "gghybrid/all.repeatmask.filter.AIMs.wild.LD_prune.GC.rds")
+##Next time just read in the RDS file
+gc <- readRDS("gghybrid/all.repeatmask.filter.AIMs.wild.LD_prune.GC.rds")
+
 #ggcline includes Bayesian p values for the cline parameters but does not include false 
 #discovery rate or other adjustments, which are left to the user. There are several R packages 
 #for FDR calculations.
@@ -297,8 +319,11 @@ gc
 #If you want to see all the results
 setkey(gc$gc,centre_pvalue)
 View(gc$gc)
-write.csv(gc$gc, file = "gghybrid/all_chrom.repeatmask.filter.AIMs.wild.LD_prune.GC.csv")
+write.csv(gc$gc, file = "gghybrid/all_chrom.repeatmask.filter.AIMs.wild.LD_prune.GC.csv", row.names = FALSE)
+##Or read in results from a previously finished run
+gc <- readRDS("gghybrid/all.repeatmask.filter.AIMs.wild.LD_prune.GC.rds")
 
+##Let's plot the distribution of cline centre and steepness results
 hist(gc$gc$exp_mean_log_v, breaks = 50, xlab = "v - cline steepness", main = "Histogram of cline steepness across loci")
 hist(gc$gc$invlogit_mean_logit_centre, breaks = 50, xlab = "c - cline centre", main = "Histogram of cline centre across loci")
 plot(gc$gc$exp_mean_log_v, gc$gc$invlogit_mean_logit_centre, ylab = "c - cline centre", xlab = "v - cline steepness")
@@ -311,13 +336,19 @@ ggplot(gc$gc, aes(x=exp_mean_log_v, y=invlogit_mean_logit_centre)) +
   geom_vline(xintercept=1.0, linetype="dashed", color = "black") +
   labs(x = "cline steepness", y = "cline centre")
 
-csv <- read.csv(file = "gghybrid/all_chrom.repeatmask.filter.AIMs.wild.LD_prune.GC.csv", header = TRUE)
+##What if we would like to evaluate our results based on chromosome identity?
+##Let's first install/load a neat R color palette package named MetBrewer to help us out
 
 install.packages("MetBrewer")
 library(MetBrewer) ##https://github.com/BlakeRMills/MetBrewer
 chrom_colors <- met.brewer(name="Hiroshige", n=9, type="continuous", direction=-1)
 
-ggplot(gc, aes(x=exp_mean_log_v, y=invlogit_mean_logit_centre, colour=chrom)) + 
+##Let's create a new dataframe for plotting with locus information for chromosome and SNP position
+plot.gc <- gc$gc
+plot.gc <- separate(plot.gc, locus, into = c("chrom", "pos"), sep = ":", remove = FALSE)
+
+##We can combine this information to plot in a way that allows us to color-code by chromosome
+plot.gc |> ggplot(aes(x=exp_mean_log_v, y=invlogit_mean_logit_centre, colour=chrom)) + 
   coord_cartesian(ylim=c(0, 1.0)) +
   geom_point(aes(fill=chrom), colour="white", pch=21, size=4) +
   scale_fill_manual(values=chrom_colors) +
