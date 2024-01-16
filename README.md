@@ -10,7 +10,7 @@ Monday lecture [slides](https://docs.google.com/presentation/d/1gu-2sEs98db7-MwO
 Tuesday lecture [slides](https://docs.google.com/presentation/d/1Df0_IewmTImZLZlYKYLl6KZtReMGFJjL1mDehTeTtVY/edit?usp=sharing) - Tuesday lab [notes](https://docs.google.com/document/d/1TeHecEGq5ogq26PdYrtiHpqfEAqI3wFR5Z67E-E75j8/edit?usp=sharing)
 
 ### Wednesday: Deploying Genome-Wide Association Studies (GWAS) to link genotype to phenotype
-Wednesday lecture [slides](https://docs.google.com/presentation/d/1VhnGhzqpCMev42m7KpKzX_qQT_l-F-mZd0cAuhymyIE/edit?usp=sharing) - Wednesday lab notes
+Wednesday lecture [slides](https://docs.google.com/presentation/d/1VhnGhzqpCMev42m7KpKzX_qQT_l-F-mZd0cAuhymyIE/edit?usp=sharing) - Wednesday lab [notes](https://docs.google.com/document/d/1EtBuvOfJoYQ8rQs3rVCPXVJ-HVJP2s2q3y2Cxe8DR-k/edit?usp=sharing)
 
 ### Thursday: Detecting selective sweeps: from summary stats to ancestral recombination graphs (ARGs)
 Thursday lecture [slides](https://docs.google.com/presentation/d/1rl2razg76FF09a-52WyfM4hwRPPflajunNWe-_vvZ04/edit?usp=sharing) - Thursday lab notes
