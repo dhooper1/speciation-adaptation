@@ -13,7 +13,7 @@ Tuesday lecture [slides](https://docs.google.com/presentation/d/1Df0_IewmTImZLZl
 Wednesday lecture [slides](https://docs.google.com/presentation/d/1VhnGhzqpCMev42m7KpKzX_qQT_l-F-mZd0cAuhymyIE/edit?usp=sharing) - Wednesday lab [notes](https://docs.google.com/document/d/1EtBuvOfJoYQ8rQs3rVCPXVJ-HVJP2s2q3y2Cxe8DR-k/edit?usp=sharing)
 
 ### Thursday: Detecting selective sweeps: from summary stats to ancestral recombination graphs (ARGs)
-Thursday lecture [slides](https://docs.google.com/presentation/d/1rl2razg76FF09a-52WyfM4hwRPPflajunNWe-_vvZ04/edit?usp=sharing) - Thursday lab notes
+Thursday lecture [slides](https://docs.google.com/presentation/d/1rl2razg76FF09a-52WyfM4hwRPPflajunNWe-_vvZ04/edit?usp=sharing) - Thursday lab [notes](https://docs.google.com/document/d/18lze1rLAbk3_ajpfhbmPrT7Vrve5gNop8h_VmoT3Brw/edit?usp=sharing)
 
 ### Friday: Structural variant discovery and mapping
 Friday lecture [slides](https://docs.google.com/presentation/d/1nmeRRFnwgkBgz8JeLq32KUiZPkeoD8hgaUZQKg3hnfk/edit?usp=sharing) - Friday lab notes
