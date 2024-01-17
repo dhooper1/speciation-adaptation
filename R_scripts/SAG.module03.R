@@ -9,7 +9,7 @@ setwd("/Users/danielhooper/Documents/Teaching/RGGS Workshop/R/Module03")
 rm(list = ls())
 
 # Read in data
-gwas.results <- read_delim("beakcolor.H3.GT.wg.covariate.maf05.LD_prune.lmm.assoc.txt", delim = "\t", col_names = c("CHROM", "SNP", "POS", "MISS", "REF", "ALT", "AF", "BETA", "BETA.SE", "REMLE", "PWALD"), skip = 1)
+gwas.results <- read_delim("gwas/beakcolor.H3.GT.wg.covariate.maf05.LD_prune.lmm.assoc.txt", delim = "\t", col_names = c("CHROM", "SNP", "POS", "MISS", "REF", "ALT", "MAF", "BETA", "BETA.SE", "LOGL_H1", "REMLE", "PWALD"), skip = 1)
 # Add in a new variable for chromosome identity by separating the SNP column
 gwas.results <- separate(gwas.results, SNP, c("chr", NA), remove = FALSE)
 # How many SNPs are on each chromosome?
@@ -23,17 +23,17 @@ gwas.results$chr=match(gwas.results$chr, order)  ##
 gwas.results=gwas.results[order(gwas.results$chr),]
 
 # Save the result as an RDS file so we don't need to do the above steps every time:
-saveRDS(gwas.results, file = "beakcolor.H3.GT.wg.covariate.maf05.lmm.assoc.rds")
+saveRDS(gwas.results, file = "gwas/beakcolor.H3.GT.wg.covariate.maf05.lmm.assoc.rds")
 # Next time just read in the RDS file
-gwas.results <- readRDS("beakcolor.H3.GT.wg.covariate.maf05.lmm.assoc.rds")
+gwas.results <- readRDS("gwas/beakcolor.H3.GT.wg.covariate.maf05.lmm.assoc.rds")
 
-#If you need a subset for reducing the size of output files you can filter out results that are
-#the least significant 
+#If you want to subset your results in order to reduce the size of output files 
+#you can filter out results that are the least significant 
 gwas.reduced <- gwas.results |> filter(PWALD < 0.01)
 
-###############################
-##MANHATTAN PLOT GWAS RESULTS##
-###############################
+###########################################
+##MANHATTAN PLOT GENOME-WIDE GWAS RESULTS##
+###########################################
 
 #We are going to plot our GWAS results using the R package 'fastman'. This newer R package
 #is faster and much easier to use than the prior go-to R package for GWAS called 'qqman'
@@ -46,16 +46,42 @@ sig.threshold <- (0.01 / length(gwas.results$SNP))
 
 # Plot results as a Manhattan plot
 fastman(gwas.results, chr="CHROM", bp="POS", p="PWALD", snp="SNP", chrlabs = chrom.labels, maxP=40, sortchr=FALSE, annotatePval = sig.threshold, annotationWinMb=1, colAbovePval = TRUE, cex = 0.3, cex.text = 0.6, annotationAngle= 60, suggestiveline = FALSE, genomewideline = FALSE)
-
-fastman(gwas.results, chr="CHROM", bp="POS", p="PWALD", snp="SNP", chrlabs = chrom.labels, maxP=40, sortchr=FALSE, annotatePval = 5.69e-10, annotationWinMb=1, colAbovePval = TRUE, cex = 0.3, cex.text = 0.6, annotationAngle= 60, suggestiveline = FALSE, genomewideline = FALSE)
-fastman(gwas.results, chr="CHROM", bp="POS", p="PWALD", snp="SNP", chrlabs = chrom.labels, maxP=40, sortchr=FALSE, annotatePval = 5.69e-10, colAbovePval = TRUE, cex = 0.3, cex.text = 0.6, annotationAngle= 60, suggestiveline = FALSE, genomewideline = FALSE)
+fastman(gwas.reduced, chr="CHROM", bp="POS", p="PWALD", snp="SNP", chrlabs = chrom.labels, maxP=40, sortchr=FALSE, annotatePval = sig.threshold, annotationWinMb=1, colAbovePval = TRUE, cex = 0.3, cex.text = 0.6, annotationAngle= 60, suggestiveline = FALSE, genomewideline = FALSE)
 
 # Examine results on a single specific chromosome in the data set
-fastman(gwas.results, chr="CHROM", bp="POS", p="PWALD", snp="SNP", chrsubset = 2, chrlabs = chrom.labels, maxP=40, sortchr=FALSE, annotatePval = 5.69e-10, colAbovePval = TRUE, cex = 0.3, cex.text = 0.01, annotationAngle= 60, suggestiveline = FALSE, genomewideline = FALSE)
-fastman(gwas.results, chr="CHROM", bp="POS", p="PWALD", snp="SNP", chrsubset = 8, chrlabs = chrom.labels, maxP=40, sortchr=FALSE, annotatePval = 5.69e-10, colAbovePval = TRUE, cex = 0.3, cex.text = 0.01, annotationAngle= 60, suggestiveline = FALSE, genomewideline = FALSE)
+fastman(gwas.results, chr="CHROM", bp="POS", p="PWALD", snp="SNP", chrsubset = 8, chrlabs = chrom.labels, maxP=40, sortchr=FALSE, annotatePval = sig.threshold, annotationWinMb=1, colAbovePval = TRUE, cex = 0.3, cex.text = 0.01, annotationAngle= 60, suggestiveline = FALSE, genomewideline = FALSE)
+
+###################################
+##MAKE A Q-Q PLOT OF GWAS RESULTS##
+###################################
+
+#When performing GWAS it is common practice to evaluate the extent to which your p-values
+#might be inflated or not. If a trait being modeled is itself correlated with genetic structure
+#and this genetic structure is not accounted for when doing the GWAS, then one might recover many
+#spurious associations (i.e., false positives). An essential tool for evaluating whether this might be
+#occurring in your data is to make a quantile-quantile plot or 'Q-Q plot'.
+
+#A 'Q-Q plot' plots the p-values for your set of SNPs (i.e., the OBSERVED data/distribution), ordered 
+#from least significant to most-significant, against an idealized distribution going from 1 to 1/N 
+#where N equals the number of SNPs tested (i.e., the EXPECTED data). 
+
+#If your data contains no true associations the observed and expected distributions will fall along
+#a 1-to-1 line but if you do have true associations you will observe a 'tail' of elevated observed
+#values against the expected. If ALL or MUCH of your observed p-values are greater than your expected
+#then this is evidence of demographic/structure producing erroenous associations (false positives).
+
+#The go-to metric for evaluating Q-Q plots is 'lambda'. Lambda values ~1 indicate that there is little
+#p-value inflation to worry about. Lambda values much greater than 1 indicate considerable inflation
+#that needs to be accounted for.
+
+# We can quickly make QQ-plots with fastman function 'fastqq'
 
 # Make QQ plots to evaluate genomic inflation score
 fastqq(gwas.results$PWALD, speedup=TRUE, lambda=TRUE, fix_zero=TRUE, cex=0.6, cex.axis=0.9)
+
+##########################################
+##MANHATTAN PLOT CHROMOSOME GWAS RESULTS##
+##########################################
 
 # Extract a specific chromosome to focus attention on
 gwas.results.chr2 <- subset(gwas.results, CHROM == "2" & PWALD < 0.01)
@@ -100,7 +126,7 @@ gff <- gff |> mutate(mid = start + (end-start)/2)
 gff <- gff |> mutate(plot = 1.2*(start/start))
 
 # Identify the 10 most significant loci on a chromosome
-hits <- gwas.results.chr8 |> arrange(desc(PWALD)) |> top_n(10)
+hits <- gwas.results.chr8 |> arrange(PWALD) |> head(n = 10)
 
 # Find the nearest genes to our highest hit
 x <- hits$POS[1]
@@ -114,4 +140,3 @@ gene_hits <- gene_hits |> dplyr::select(chr, start, end, attribute, hit_dist)
 # Separate out the attribute column
 gene_hits |> pull(attribute)
 gene_hits |> pull(hit_dist)
-
