@@ -12,11 +12,11 @@ rm(list = ls())
 
 # Read in data for each Poephila subspecies/taxon
 # acuticauda WT [i.e., yellow beaks]
-paa_hh <- data2haplohh(hap_file = "chr2/hapcut2.230815.chr2.20440774-22496205.paa.INFO_SCORE_0.6.vcf.gz", polarize_vcf = FALSE)
+paa_hh <- data2haplohh(hap_file = "vcfs/hapcut2.230815.chr2.20440774-22496205.paa.INFO_SCORE_0.6.vcf.gz", polarize_vcf = FALSE)
 # hecki admixed [i.e., orange beaks]
-pah_o_hh <- data2haplohh(hap_file = "chr2/hapcut2.230815.chr2.20440774-22496205.pah_o.INFO_SCORE_0.6.vcf.gz", polarize_vcf = FALSE)
+pah_o_hh <- data2haplohh(hap_file = "vcfs/hapcut2.230815.chr2.20440774-22496205.pah_o.INFO_SCORE_0.6.vcf.gz", polarize_vcf = FALSE)
 # hecki WT [i.e., red beaks]
-pah_r_hh <- data2haplohh(hap_file = "chr2/hapcut2.230815.chr2.20440774-22496205.pah_r.INFO_SCORE_0.6.vcf.gz", polarize_vcf = FALSE)
+pah_r_hh <- data2haplohh(hap_file = "vcfs/hapcut2.230815.chr2.20440774-22496205.pah_r.INFO_SCORE_0.6.vcf.gz", polarize_vcf = FALSE)
 
 #Next, we will filter our data on a minor allele frequency or MAF. 
 #This is really simple in rehh with the subset function:
