@@ -16,7 +16,7 @@ Wednesday lecture [slides](https://docs.google.com/presentation/d/1VhnGhzqpCMev4
 Thursday lecture [slides](https://docs.google.com/presentation/d/1rl2razg76FF09a-52WyfM4hwRPPflajunNWe-_vvZ04/edit?usp=sharing) - Thursday lab [notes](https://docs.google.com/document/d/18lze1rLAbk3_ajpfhbmPrT7Vrve5gNop8h_VmoT3Brw/edit?usp=sharing)
 
 ### Friday: Structural variant discovery and mapping
-Friday lecture [slides](https://docs.google.com/presentation/d/1nmeRRFnwgkBgz8JeLq32KUiZPkeoD8hgaUZQKg3hnfk/edit?usp=sharing) - Friday lab notes
+Friday lecture [slides](https://docs.google.com/presentation/d/1nmeRRFnwgkBgz8JeLq32KUiZPkeoD8hgaUZQKg3hnfk/edit?usp=sharing) - Friday lab [notes](https://docs.google.com/document/d/1EvaohxDLiRLc2Tztl4aplPbFOC8nRdKs2HhWXwJEM1w/edit?usp=sharing)
 
 ### R Resources
 This is a highly recommended [resource](https://elsherbini.github.io/AMNH_R_Workshop_2023/) guide from [Joseph Elserbini](https://kwonlab.mgh.harvard.edu/project/joseph-elsherbini/) for getting started with R and joining the Tidyverse.
