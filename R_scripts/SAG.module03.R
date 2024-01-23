@@ -114,8 +114,12 @@ gwas.results.chrZ |> ggplot(aes(x=POS, y=-log10(PWALD))) +
 # Read in gff for chromosome of interest - note that file has already been filtered to only include genes
 setwd("/Users/danielhooper/Documents/Teaching/RGGS Workshop/R/Module03/gwas/")
 gff <- read.table("GCF_003957565.2_bTaeGut1.4.pri_genomic.chr8.gff", sep="\t", header=F)
+
 # Subset and clear up the gff - add names
 colnames(gff) <- c("chr", "source", "feature", "start", "end", "score", "strand", "frame", "attribute")
+
+# Remove lncRNAs
+gff <- gff |> filter(!grepl("lncRNA", attribute))
 
 # Arrange the gff
 gff <- gff |> arrange(start, end)
